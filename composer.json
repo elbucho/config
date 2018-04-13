@@ -1,0 +1,32 @@
+{
+  "name": "elbucho/config",
+  "description": "Multiple file format object-oriented config system",
+  "keywords": ["config"],
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Michael Hinkson",
+      "email": "mjhinkson@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Elbucho\\Config\\": "src/elbucho/config/"
+    }
+  },
+  "autoload-dev": {
+    "Elbucho\\Config\\Tests\\": "tests/elbucho/config/"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    }
+  }
+}
