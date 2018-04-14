@@ -5,7 +5,7 @@ use Elbucho\Config\Config;
 use Elbucho\Config\DriverInterface;
 use Elbucho\Config\InvalidFileException;
 
-class PHPDriver implements DriverInterface
+class PhpDriver implements DriverInterface
 {
     /**
      * Return an array of valid file extensions for this class
