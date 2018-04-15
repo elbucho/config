@@ -2,6 +2,7 @@
   "name": "elbucho/config",
   "description": "Multiple file format object-oriented config system",
   "keywords": ["config"],
+  "type": "library",
   "minimum-stability": "dev",
   "license": "MIT",
   "authors": [
@@ -31,5 +32,9 @@
     "branch-alias": {
       "dev-master": "1.0.x-dev"
     }
+  },
+  "suggest": {
+    "ext-simplexml": "Needed to support the XML config file format",
+    "ext-json": "Needed to support the JSON config file format"
   }
 }

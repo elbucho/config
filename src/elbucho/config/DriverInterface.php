@@ -9,7 +9,7 @@ interface DriverInterface
      *
      * @access  public
      * @param   void
-     * @return  array   // e.g. ['php']
+     * @return  array|false // e.g. ['php']
      */
     public function getExtensions();
 

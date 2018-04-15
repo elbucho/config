@@ -12,11 +12,15 @@ class JsonDriver implements DriverInterface
      *
      * @access  public
      * @param   void
-     * @return  array   // e.g. ['php']
+     * @return  array|false // e.g. ['php']
      */
     public function getExtensions()
     {
-        return array('json');
+        if (function_exists('json_decode')) {
+            return array('json');
+        }
+
+        return false;
     }
 
     /**

@@ -13,11 +13,15 @@ class XmlDriver implements DriverInterface
      *
      * @access  public
      * @param   void
-     * @return  array   // e.g. ['php']
+     * @return  array|false // e.g. ['php']
      */
     public function getExtensions()
     {
-        return array('xml');
+        if (class_exists('SimpleXMLElement')) {
+            return array('xml');
+        }
+
+        return false;
     }
 
     /**

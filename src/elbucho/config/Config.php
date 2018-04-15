@@ -331,7 +331,9 @@ class Config implements \Serializable, \Iterator
                     $driver = new $class();
 
                     /* @var DriverInterface $driver */
-                    $extensions = $driver->getExtensions();
+                    if (($extensions = $driver->getExtensions()) === false) {
+                        continue;
+                    }
 
                     foreach ($extensions as $extension) {
                         $this->drivers[$extension] = clone($driver);
