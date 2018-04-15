@@ -50,7 +50,7 @@ class PhpDriver implements DriverInterface
      * @access  public
      * @param   Config $config
      * @param   string $path
-     * @return  void
+     * @return  bool
      * @throws  InvalidFileException
      */
     public function save(Config $config, $path)
@@ -77,7 +77,7 @@ class PhpDriver implements DriverInterface
         $body = $this->convertToString($config->toArray());
         $footer = ');';
 
-        file_put_contents(
+        return (bool) file_put_contents(
             $path,
             sprintf(
                 "%s\n%s\n%s",

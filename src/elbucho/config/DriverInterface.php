@@ -29,7 +29,7 @@ interface DriverInterface
      * @access  public
      * @param   Config  $config
      * @param   string  $path
-     * @return  void
+     * @return  bool
      * @throws  InvalidFileException
      */
     public function save(Config $config, $path);

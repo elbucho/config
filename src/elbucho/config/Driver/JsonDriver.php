@@ -58,7 +58,7 @@ class JsonDriver implements DriverInterface
      * @access  public
      * @param   Config $config
      * @param   string $path
-     * @return  void
+     * @return  bool
      * @throws  InvalidFileException
      */
     public function save(Config $config, $path)
@@ -81,7 +81,7 @@ class JsonDriver implements DriverInterface
             throw new InvalidFileException('Unable to write to the target directory');
         }
 
-        file_put_contents(
+        return (bool) file_put_contents(
             $path,
             json_encode(
                 $config->toArray(),

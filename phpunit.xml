@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit colors="true">
+    <testsuites>
+        <testsuite name="Config Test Suite">
+            <directory>
+                ./tests/elbucho/config/tests
+            </directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+        <log type="coverage-html" target="./tests/elbucho/config/coverage" />
+    </logging>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">
+                ./src/elbucho/config
+            </directory>
+        </whitelist>
+    </filter>
+</phpunit>

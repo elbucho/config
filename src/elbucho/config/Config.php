@@ -55,7 +55,7 @@ class Config implements \Serializable, \Iterator
             if ( ! array_key_exists($key, $this->data)) {
                 $this->data[$key] = $value;
             } else {
-                if ( ! is_object($value) or ! $value instanceof Config) {
+                if ( ! is_object($this->data[$key]) or ! $this->data[$key] instanceof Config) {
                     $this->data[$key] = $value;
                 } else {
                     $this->data[$key]->append($value);
@@ -64,6 +64,29 @@ class Config implements \Serializable, \Iterator
         });
 
         return $this;
+    }
+
+    /**
+     * Save this config to a file
+     *
+     * @access  public
+     * @param   string  $path
+     * @return  bool
+     * @throws  InvalidFileException
+     */
+    public function save($path)
+    {
+        $info = pathinfo($path);
+
+        if (empty($info['extension']) or ! array_key_exists($info['extension'], $this->drivers)) {
+            throw new InvalidFileException('No driver has been loaded to support this file type');
+        }
+
+        if ( ! is_dir($info['dirname'])) {
+            @mkdir($info['dirname'], 0755, true);
+        }
+
+        return $this->drivers[$info['extension']]->save($this, $path);
     }
 
     /**
@@ -136,14 +159,14 @@ class Config implements \Serializable, \Iterator
         $parts = explode('.', $path);
 
         for ($i=0;$i<count($parts)-1;$i++) {
-            if ( ! isset($pointer->$parts[$i])) {
+            if ( ! isset($pointer->{$parts[$i]})) {
                 return;
             }
 
-            $pointer = $pointer->$parts[$i];
+            $pointer = $pointer->{$parts[$i]};
         }
 
-        unset($pointer->$parts[count($parts)-1]);
+        unset($pointer->{$parts[count($parts)-1]});
     }
 
     /**
@@ -293,9 +316,10 @@ class Config implements \Serializable, \Iterator
     private function registerHandlers()
     {
         foreach (glob(__DIR__ . '/Driver/*.php') as $class) {
+            $driverDir = __DIR__ . DIRECTORY_SEPARATOR . "Driver" . DIRECTORY_SEPARATOR;
             $translations = array(
-                __DIR__ => '',
-                '.php'  => ''
+                $driverDir  => '',
+                '.php'      => ''
             );
 
             $class = '\\Elbucho\\Config\\Driver\\' . strtr($class, $translations);
@@ -370,21 +394,32 @@ class Config implements \Serializable, \Iterator
                 continue;
             }
 
-            if (is_dir($path . DIRECTORY_SEPARATOR . $file)) {
-                $contents = $this->loadConfigFromDirectory($path . DIRECTORY_SEPARATOR . $file);
+            $info = pathinfo($path . DIRECTORY_SEPARATOR . $file);
 
-                if ( ! empty($contents)) {
-                    $return[$file] = $this->loadConfigFromArray($contents);
+            if (is_dir($path . DIRECTORY_SEPARATOR . $file)) {
+                if (isset($return[$info['filename']]) and $return[$info['filename']] instanceof Config) {
+                    $return[$info['filename']]->append(
+                        $this->loadConfigFromDirectory($path . DIRECTORY_SEPARATOR . $file)
+                    );
+                } else {
+                    $return[$info['filename']] = new Config(
+                        $this->loadConfigFromDirectory($path . DIRECTORY_SEPARATOR . $file)
+                    );
                 }
 
                 continue;
             }
 
             try {
-                $return = array_merge(
-                    $return,
-                    $this->loadConfigFromFile($path . DIRECTORY_SEPARATOR . $file)
-                );
+                if (isset($return[$info['filename']]) and $return[$info['filename']] instanceof Config) {
+                    $return[$info['filename']]->append(
+                        $this->loadConfigFromFile($path . DIRECTORY_SEPARATOR . $file)
+                    );
+                } else {
+                    $return[$info['filename']] = new Config(
+                        $this->loadConfigFromFile($path . DIRECTORY_SEPARATOR . $file)
+                    );
+                }
             } catch (InvalidFileException $e) {
                 continue;
             }
@@ -403,15 +438,13 @@ class Config implements \Serializable, \Iterator
      */
     private function loadConfigFromFile($path)
     {
-        $info = pathinfo($path . DIRECTORY_SEPARATOR . $path);
+        $info = pathinfo($path);
 
         if ( ! empty($info['extension'])) {
             if (array_key_exists($info['extension'], $this->drivers)) {
-                return array(
-                    $info['filename'] => $this->loadConfigFromArray(
-                        $this->drivers[$info['extension']]->load(
-                            $path
-                        )
+                return $this->loadConfigFromArray(
+                    $this->drivers[$info['extension']]->load(
+                        $path
                     )
                 );
             }

@@ -4,6 +4,7 @@ namespace Elbucho\Config\Driver;
 use Elbucho\Config\Config;
 use Elbucho\Config\DriverInterface;
 use Elbucho\Config\InvalidFileException;
+use Doctrine\Common\Inflector\Inflector;
 
 class XmlDriver implements DriverInterface
 {
@@ -52,7 +53,7 @@ class XmlDriver implements DriverInterface
      * @access  public
      * @param   Config $config
      * @param   string $path
-     * @return  void
+     * @return  bool
      * @throws  InvalidFileException
      */
     public function save(Config $config, $path)
@@ -75,7 +76,7 @@ class XmlDriver implements DriverInterface
             throw new InvalidFileException('Unable to write to the target directory');
         }
 
-        $topElement = $this->pluralize($info['filename']);
+        $topElement = Inflector::pluralize($info['filename']);
         $xml = new \SimpleXMLElement(sprintf(
             '<?xml version="1.0"?><%s></%s>',
             $topElement,
@@ -83,7 +84,7 @@ class XmlDriver implements DriverInterface
         ));
 
         $this->parseArray($config->toArray(), $xml);
-        $xml->asXML($path);
+        return (bool) $xml->asXML($path);
     }
 
     /**
@@ -201,17 +202,5 @@ class XmlDriver implements DriverInterface
         }
 
         return (string) $value;
-    }
-
-    /**
-     * Return a plural version of the file name to use for the top XML element
-     *
-     * @access  private
-     * @param   string  $name
-     * @return  string
-     */
-    private function pluralize($name)
-    {
-
     }
 }
