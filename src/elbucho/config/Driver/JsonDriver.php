@@ -2,10 +2,9 @@
 
 namespace Elbucho\Config\Driver;
 use Elbucho\Config\Config;
-use Elbucho\Config\DriverInterface;
 use Elbucho\Config\InvalidFileException;
 
-class JsonDriver implements DriverInterface
+class JsonDriver extends BaseDriver
 {
     /**
      * Return an array of valid file extensions for this class

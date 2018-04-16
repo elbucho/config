@@ -1,7 +1,7 @@
 {
   "name": "elbucho/config",
   "description": "Multiple file format object-oriented config system",
-  "keywords": ["config"],
+  "keywords": ["config","ini","xml","json","yaml","yml"],
   "type": "library",
   "minimum-stability": "dev",
   "license": "MIT",
@@ -18,7 +18,8 @@
   "require-dev": {
     "php": ">=7.1",
     "phpunit/phpunit": "^7.2",
-    "phpunit/php-code-coverage": "^6.0"
+    "phpunit/php-code-coverage": "^6.0",
+    "symfony/yaml": "*"
   },
   "autoload": {
     "psr-4": {
@@ -35,6 +36,7 @@
   },
   "suggest": {
     "ext-simplexml": "Needed to support the XML config file format",
-    "ext-json": "Needed to support the JSON config file format"
+    "ext-json": "Needed to support the JSON config file format",
+    "symfony/yaml": "Needed to support the YAML/YML config file formats"
   }
 }

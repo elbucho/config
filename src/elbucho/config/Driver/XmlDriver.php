@@ -2,11 +2,10 @@
 
 namespace Elbucho\Config\Driver;
 use Elbucho\Config\Config;
-use Elbucho\Config\DriverInterface;
 use Elbucho\Config\InvalidFileException;
 use Doctrine\Common\Inflector\Inflector;
 
-class XmlDriver implements DriverInterface
+class XmlDriver extends BaseDriver
 {
     /**
      * Return an array of valid file extensions for this class
@@ -150,61 +149,5 @@ class XmlDriver implements DriverInterface
                 $xml->addChild($key, $this->makeString($value));
             }
         }
-    }
-
-    /**
-     * Transform any boolean or numeric values in the source XML
-     *
-     * @access  private
-     * @param   string  $value
-     * @return  mixed
-     */
-    private function makeValue($value)
-    {
-        if (strtolower($value) === 'true') {
-            return true;
-        }
-
-        if (strtolower($value) === 'false') {
-            return false;
-        }
-
-        if (is_numeric($value)) {
-            return $value + 0;
-        }
-
-        return $value;
-    }
-
-    /**
-     * Transform all array values to strings for the destination XML
-     *
-     * @access  private
-     * @param   mixed   $value
-     * @return  string
-     */
-    private function makeString($value)
-    {
-        if ($value === true) {
-            return 'true';
-        }
-
-        if ($value === false) {
-            return 'false';
-        }
-
-        if ($value instanceof \DateTime) {
-            return $value->format('Y-m-d H:i:s');
-        }
-
-        if (is_object($value)) {
-            return serialize($value);
-        }
-
-        if (is_resource($value)) {
-            return 'RESOURCE';
-        }
-
-        return (string) $value;
     }
 }
