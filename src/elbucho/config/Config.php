@@ -1,6 +1,11 @@
 <?php
 
 namespace Elbucho\Config;
+use Elbucho\Config\Driver\IniDriver;
+use Elbucho\Config\Driver\JsonDriver;
+use Elbucho\Config\Driver\PhpDriver;
+use Elbucho\Config\Driver\XmlDriver;
+use Elbucho\Config\Driver\YamlDriver;
 
 class Config implements \Serializable, \Iterator
 {
@@ -315,33 +320,22 @@ class Config implements \Serializable, \Iterator
      */
     private function registerHandlers()
     {
-        foreach (glob(__DIR__ . '/Driver/*.php') as $class) {
-            $driverDir = __DIR__ . DIRECTORY_SEPARATOR . "Driver" . DIRECTORY_SEPARATOR;
-            $translations = array(
-                $driverDir  => '',
-                '.php'      => ''
-            );
+        $this->drivers = array(
+            'ini'   => new IniDriver(),
+            'php'   => new PhpDriver()
+        );
 
-            $class = '\\Elbucho\\Config\\Driver\\' . strtr($class, $translations);
+        if (class_exists('SimpleXMLElement')) {
+            $this->drivers['xml'] = new XmlDriver();
+        }
 
-            try {
-                $reflection = new \ReflectionClass($class);
+        if (function_exists('json_decode')) {
+            $this->drivers['json'] = new JsonDriver();
+        }
 
-                if ($reflection->implementsInterface('Elbucho\\Config\\DriverInterface')) {
-                    $driver = new $class();
-
-                    /* @var DriverInterface $driver */
-                    if (($extensions = $driver->getExtensions()) === false) {
-                        continue;
-                    }
-
-                    foreach ($extensions as $extension) {
-                        $this->drivers[$extension] = clone($driver);
-                    }
-                }
-            } catch (\ReflectionException $e) {
-                continue;
-            }
+        if (class_exists('Symfony\\Component\\Yaml\\Parser')) {
+            $this->drivers['yml'] = new YamlDriver();
+            $this->drivers['yaml'] = new YamlDriver();
         }
     }
 

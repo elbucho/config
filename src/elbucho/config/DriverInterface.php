@@ -5,15 +5,6 @@ namespace Elbucho\Config;
 interface DriverInterface
 {
     /**
-     * Return an array of valid file extensions for this class
-     *
-     * @access  public
-     * @param   void
-     * @return  array|false // e.g. ['php']
-     */
-    public function getExtensions();
-
-    /**
      * Load information from a file and return an array
      *
      * @access  public

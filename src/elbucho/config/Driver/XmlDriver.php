@@ -8,22 +8,6 @@ use Doctrine\Common\Inflector\Inflector;
 class XmlDriver extends BaseDriver
 {
     /**
-     * Return an array of valid file extensions for this class
-     *
-     * @access  public
-     * @param   void
-     * @return  array|false // e.g. ['php']
-     */
-    public function getExtensions()
-    {
-        if (class_exists('SimpleXMLElement')) {
-            return array('xml');
-        }
-
-        return false;
-    }
-
-    /**
      * Load information from a file and return an array
      *
      * @access  public
