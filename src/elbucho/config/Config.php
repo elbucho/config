@@ -31,7 +31,7 @@ class Config implements \Serializable, \Iterator
      * @access  public
      * @param   string|array    $config
      * @return  Config
-     * @throws  \Exception
+     * @throws  InvalidFileException|InvalidTypeException
      */
     public function __construct($config = null)
     {
@@ -50,7 +50,7 @@ class Config implements \Serializable, \Iterator
      * @access  public
      * @param   mixed   $input
      * @return  Config
-     * @throws  \Exception
+     * @throws  InvalidFileException|InvalidTypeException
      */
     public function append($input)
     {
@@ -77,18 +77,25 @@ class Config implements \Serializable, \Iterator
      * @access  public
      * @param   string  $path
      * @return  bool
-     * @throws  InvalidFileException
+     * @throws  InvalidFileException|InvalidTypeException
      */
     public function save($path)
     {
         $info = pathinfo($path);
 
         if (empty($info['extension']) or ! array_key_exists($info['extension'], $this->drivers)) {
-            throw new InvalidFileException('No driver has been loaded to support this file type');
+            throw new InvalidTypeException('No driver has been loaded to support this file type');
         }
 
         if ( ! is_dir($info['dirname'])) {
             @mkdir($info['dirname'], 0755, true);
+        }
+
+        if ( ! is_dir($info['dirname'])) {
+            throw new InvalidFileException(sprintf(
+                'Unable to create directory %s',
+                $info['dirname']
+            ));
         }
 
         return $this->drivers[$info['extension']]->save($this, $path);
@@ -345,23 +352,34 @@ class Config implements \Serializable, \Iterator
      * @access  private
      * @param   string|array    $input
      * @return  Config[]
-     * @throws  \Exception
+     * @throws  InvalidTypeException|InvalidFileException
      */
     private function load($input)
     {
-        if (is_string($input) and file_exists($input)) {
+        if (is_string($input)) {
+            if ( ! file_exists($input)) {
+                throw new InvalidFileException(sprintf(
+                    'The file path provided does not exist: %s',
+                    $input
+                ));
+            }
+
             if (is_dir($input)) {
                 return $this->loadConfigFromDirectory($input);
             } else {
                 return $this->loadConfigFromFile($input);
             }
-        } elseif (is_array($input)) {
+        }
+
+        if (is_array($input)) {
             return $this->loadConfigFromArray($input);
-        } elseif (is_object($input) and $input instanceof Config) {
+        }
+
+        if (is_object($input) and $input instanceof Config) {
             return $this->loadConfigFromArray($input->toArray());
         }
 
-        throw new \Exception(sprintf(
+        throw new InvalidTypeException(sprintf(
             'Unsupported type provided.  Must be a path to a file / directory, array, or Config object'
         ));
     }
@@ -372,14 +390,14 @@ class Config implements \Serializable, \Iterator
      * @access  private
      * @param   string  $path
      * @return  Config[]
-     * @throws  \Exception
+     * @throws  InvalidFileException|InvalidTypeException
      */
     private function loadConfigFromDirectory($path)
     {
         $return = array();
 
         if (($dh = @opendir($path)) === false) {
-            throw new \Exception(sprintf(
+            throw new InvalidFileException(sprintf(
                 'Unable to open the directory %s',
                 $path
             ));
@@ -430,7 +448,7 @@ class Config implements \Serializable, \Iterator
      * @access  private
      * @param   string  $path
      * @return  Config[]
-     * @throws  InvalidFileException|\Exception
+     * @throws  InvalidFileException|InvalidTypeException
      */
     private function loadConfigFromFile($path)
     {
@@ -446,7 +464,7 @@ class Config implements \Serializable, \Iterator
             }
         }
 
-        throw new InvalidFileException(sprintf(
+        throw new InvalidTypeException(sprintf(
             'No valid file interpreters exist for the input file %s',
             $path
         ));
@@ -458,7 +476,7 @@ class Config implements \Serializable, \Iterator
      * @access  private
      * @param   array   $data
      * @return  Config[]
-     * @throws  \Exception
+     * @throws  InvalidTypeException|InvalidFileException
      */
     private function loadConfigFromArray(array $data = array())
     {

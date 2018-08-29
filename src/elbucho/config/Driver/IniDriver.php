@@ -16,7 +16,7 @@ class IniDriver extends BaseDriver
      */
     public function load($path)
     {
-        $return = parse_ini_file($path, true, INI_SCANNER_NORMAL);
+        $return = parse_ini_file($path, true, INI_SCANNER_TYPED);
 
         if ( ! is_array($return)) {
             throw new InvalidFileException('Provided .ini file is not in a valid format');

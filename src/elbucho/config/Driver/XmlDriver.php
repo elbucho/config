@@ -3,7 +3,10 @@
 namespace Elbucho\Config\Driver;
 use Elbucho\Config\Config;
 use Elbucho\Config\InvalidFileException;
-use Doctrine\Common\Inflector\Inflector;
+use Doctrine\Inflector\Inflector;
+use Doctrine\Inflector\CachedWordInflector;
+use Doctrine\Inflector\RulesetInflector;
+use Doctrine\Inflector\Rules\English\Rules;
 
 class XmlDriver extends BaseDriver
 {
@@ -63,7 +66,16 @@ class XmlDriver extends BaseDriver
             throw new InvalidFileException('Unable to write to the target directory');
         }
 
-        $topElement = Inflector::pluralize($info['filename']);
+        $inflector = new Inflector(
+            new CachedWordInflector(new RulesetInflector(
+                Rules::getSingularRuleset()
+            )),
+            new CachedWordInflector(new RulesetInflector(
+                Rules::getPluralRuleset()
+            ))
+        );
+
+        $topElement = $inflector->pluralize($info['filename']);
         $xml = new \SimpleXMLElement(sprintf(
             '<?xml version="1.0"?><%s></%s>',
             $topElement,
@@ -119,7 +131,7 @@ class XmlDriver extends BaseDriver
      * @param   \SimpleXMLElement   &$xml
      * @return  void
      */
-    private function parseArray(array $data = array(), \SimpleXMLElement &$xml)
+    private function parseArray(array $data, \SimpleXMLElement &$xml)
     {
         foreach ($data as $key => $value) {
             if (is_numeric($key)) {

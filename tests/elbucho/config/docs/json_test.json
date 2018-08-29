@@ -8,6 +8,8 @@
   },
   "test5": false,
   "test6": {
-    "test7": 0.75
-  }
+    "test7": 0.75,
+    "test8": 15
+  },
+  "test9": "foo"
 }
