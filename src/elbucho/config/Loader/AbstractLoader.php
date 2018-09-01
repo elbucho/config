@@ -2,6 +2,11 @@
 
 namespace Elbucho\Config\Loader;
 use Elbucho\Config\LoaderInterface;
+use Elbucho\Config\Loader\File\IniFileLoader;
+use Elbucho\Config\Driver\PhpFileLoader;
+use Elbucho\Config\Driver\JsonFileLoader;
+use Elbucho\Config\Driver\XmlFileLoader;
+use Elbucho\Config\Driver\YamlFileLoader;
 
 abstract class AbstractLoader implements LoaderInterface
 {
@@ -65,8 +70,8 @@ abstract class AbstractLoader implements LoaderInterface
         }
 
         if (class_exists('Symfony\\Component\\Yaml\\Parser')) {
-            $return['yml'] = new YamlFileDriver();
-            $return['yaml'] = new YamlFileDriver();
+            $return['yml'] = new YamlFileLoader();
+            $return['yaml'] = new YamlFileLoader();
         }
 
         return $return;

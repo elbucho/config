@@ -1,22 +1,9 @@
 <?php
 
 namespace Elbucho\Config;
-use Elbucho\Config\Driver\IniDriver;
-use Elbucho\Config\Driver\JsonDriver;
-use Elbucho\Config\Driver\PhpDriver;
-use Elbucho\Config\Driver\XmlDriver;
-use Elbucho\Config\Driver\YamlDriver;
 
 class Config implements \Serializable, \Iterator
 {
-    /**
-     * Registered file handlers
-     *
-     * @access  private
-     * @var     DriverInterface[]
-     */
-    private $drivers = array();
-
     /**
      * Configuration data
      *
@@ -29,17 +16,12 @@ class Config implements \Serializable, \Iterator
      * Class constructor
      *
      * @access  public
-     * @param   string|array    $config
+     * @param   array   $data
      * @return  Config
-     * @throws  InvalidFileException|InvalidTypeException
      */
-    public function __construct($config = null)
+    public function __construct(array $data = array())
     {
-        $this->registerHandlers();
-
-        if ( ! is_null($config)) {
-            $this->data = $this->load($config);
-        }
+        $this->data = $this->load($data);
 
         return $this;
     }
@@ -48,57 +30,24 @@ class Config implements \Serializable, \Iterator
      * Append additional files / array to Config object
      *
      * @access  public
-     * @param   mixed   $input
+     * @param   array   $data
      * @return  Config
-     * @throws  InvalidFileException|InvalidTypeException
      */
-    public function append($input)
+    public function append(array $data = array())
     {
-        $newData = $this->load($input);
+        $newData = $this->load($data);
 
-        array_walk($newData, function ($value, $key) {
-            if ( ! array_key_exists($key, $this->data)) {
-                $this->data[$key] = $value;
-            } else {
-                if ( ! is_object($this->data[$key]) or ! $this->data[$key] instanceof Config) {
-                    $this->data[$key] = $value;
-                } else {
-                    $this->data[$key]->append($value);
-                }
+        foreach ($newData as $key => $value) {
+            if ($this->$key instanceof Config) {
+                $this->$key->append($value);
+
+                continue;
             }
-        });
+
+            $this->$key = $value;
+        }
 
         return $this;
-    }
-
-    /**
-     * Save this config to a file
-     *
-     * @access  public
-     * @param   string  $path
-     * @return  bool
-     * @throws  InvalidFileException|InvalidTypeException
-     */
-    public function save($path)
-    {
-        $info = pathinfo($path);
-
-        if (empty($info['extension']) or ! array_key_exists($info['extension'], $this->drivers)) {
-            throw new InvalidTypeException('No driver has been loaded to support this file type');
-        }
-
-        if ( ! is_dir($info['dirname'])) {
-            @mkdir($info['dirname'], 0755, true);
-        }
-
-        if ( ! is_dir($info['dirname'])) {
-            throw new InvalidFileException(sprintf(
-                'Unable to create directory %s',
-                $info['dirname']
-            ));
-        }
-
-        return $this->drivers[$info['extension']]->save($this, $path);
     }
 
     /**
@@ -112,12 +61,14 @@ class Config implements \Serializable, \Iterator
     {
         $data = array();
 
-        foreach ($this->data as $key => $value) {
-            if (is_object($value) and $value instanceof Config) {
+        foreach ($this as $key => $value) {
+            if ($value instanceof Config) {
                 $data[$key] = $value->toArray();
-            } else {
-                $data[$key] = $value;
+
+                continue;
             }
+
+            $data[$key] = $value;
         }
 
         return $data;
@@ -257,7 +208,7 @@ class Config implements \Serializable, \Iterator
      */
     public function unserialize($serialized)
     {
-        $this->data = $this->loadConfigFromArray(unserialize($serialized));
+        $this->data = $this->load(unserialize($serialized));
     }
 
     /**
@@ -319,175 +270,24 @@ class Config implements \Serializable, \Iterator
     }
 
     /**
-     * Register all available file handlers
-     *
-     * @access  private
-     * @param   void
-     * @return  void
-     */
-    private function registerHandlers()
-    {
-        $this->drivers = array(
-            'ini'   => new IniDriver(),
-            'php'   => new PhpDriver()
-        );
-
-        if (class_exists('SimpleXMLElement')) {
-            $this->drivers['xml'] = new XmlDriver();
-        }
-
-        if (function_exists('json_decode')) {
-            $this->drivers['json'] = new JsonDriver();
-        }
-
-        if (class_exists('Symfony\\Component\\Yaml\\Parser')) {
-            $this->drivers['yml'] = new YamlDriver();
-            $this->drivers['yaml'] = new YamlDriver();
-        }
-    }
-
-    /**
-     * Load data from a file or array
-     *
-     * @access  private
-     * @param   string|array    $input
-     * @return  Config[]
-     * @throws  InvalidTypeException|InvalidFileException
-     */
-    private function load($input)
-    {
-        if (is_string($input)) {
-            if ( ! file_exists($input)) {
-                throw new InvalidFileException(sprintf(
-                    'The file path provided does not exist: %s',
-                    $input
-                ));
-            }
-
-            if (is_dir($input)) {
-                return $this->loadConfigFromDirectory($input);
-            } else {
-                return $this->loadConfigFromFile($input);
-            }
-        }
-
-        if (is_array($input)) {
-            return $this->loadConfigFromArray($input);
-        }
-
-        if (is_object($input) and $input instanceof Config) {
-            return $this->loadConfigFromArray($input->toArray());
-        }
-
-        throw new InvalidTypeException(sprintf(
-            'Unsupported type provided.  Must be a path to a file / directory, array, or Config object'
-        ));
-    }
-
-    /**
-     * Load config from a directory
-     *
-     * @access  private
-     * @param   string  $path
-     * @return  Config[]
-     * @throws  InvalidFileException|InvalidTypeException
-     */
-    private function loadConfigFromDirectory($path)
-    {
-        $return = array();
-
-        if (($dh = @opendir($path)) === false) {
-            throw new InvalidFileException(sprintf(
-                'Unable to open the directory %s',
-                $path
-            ));
-        }
-
-        while (($file = readdir($dh)) !== false) {
-            if (preg_match("/^\.{1,2}$/", $file)) {
-                continue;
-            }
-
-            $info = pathinfo($path . DIRECTORY_SEPARATOR . $file);
-
-            if (is_dir($path . DIRECTORY_SEPARATOR . $file)) {
-                if (isset($return[$info['filename']]) and $return[$info['filename']] instanceof Config) {
-                    $return[$info['filename']]->append(
-                        $this->loadConfigFromDirectory($path . DIRECTORY_SEPARATOR . $file)
-                    );
-                } else {
-                    $return[$info['filename']] = new Config(
-                        $this->loadConfigFromDirectory($path . DIRECTORY_SEPARATOR . $file)
-                    );
-                }
-
-                continue;
-            }
-
-            try {
-                if (isset($return[$info['filename']]) and $return[$info['filename']] instanceof Config) {
-                    $return[$info['filename']]->append(
-                        $this->loadConfigFromFile($path . DIRECTORY_SEPARATOR . $file)
-                    );
-                } else {
-                    $return[$info['filename']] = new Config(
-                        $this->loadConfigFromFile($path . DIRECTORY_SEPARATOR . $file)
-                    );
-                }
-            } catch (InvalidFileException $e) {
-                continue;
-            }
-        }
-
-        return $return;
-    }
-
-    /**
-     * Load config from a file
-     *
-     * @access  private
-     * @param   string  $path
-     * @return  Config[]
-     * @throws  InvalidFileException|InvalidTypeException
-     */
-    private function loadConfigFromFile($path)
-    {
-        $info = pathinfo($path);
-
-        if ( ! empty($info['extension'])) {
-            if (array_key_exists($info['extension'], $this->drivers)) {
-                return $this->loadConfigFromArray(
-                    $this->drivers[$info['extension']]->load(
-                        $path
-                    )
-                );
-            }
-        }
-
-        throw new InvalidTypeException(sprintf(
-            'No valid file interpreters exist for the input file %s',
-            $path
-        ));
-    }
-
-    /**
      * Load config from an array
      *
      * @access  private
      * @param   array   $data
      * @return  Config[]
-     * @throws  InvalidTypeException|InvalidFileException
      */
-    private function loadConfigFromArray(array $data = array())
+    private function load(array $data = array())
     {
         $return = array();
 
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $return[$key] = new Config($value);
-            } else {
-                $return[$key] = $value;
+
+                continue;
             }
+
+            $return[$key] = $value;
         }
 
         return $return;

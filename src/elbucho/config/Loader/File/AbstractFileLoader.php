@@ -1,9 +1,9 @@
 <?php
 
-namespace Elbucho\Config\Driver;
-use Elbucho\Config\DriverInterface;
+namespace Elbucho\Config\Loader\File;
+use Elbucho\Config\LoaderInterface;
 
-abstract class BaseDriver implements DriverInterface
+abstract class AbstractFileLoader implements LoaderInterface
 {
     /**
      * Transform any boolean or numeric values in the source XML

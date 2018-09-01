@@ -2,7 +2,7 @@
 
 namespace Elbucho\Config\Tests;
 use Elbucho\Config\InvalidFileException;
-use Elbucho\Config\InvalidTypeException;
+use Elbucho\Config\LoaderInterface;
 use PHPUnit\Framework\TestCase;
 use Elbucho\Config\Config;
 
@@ -23,6 +23,16 @@ abstract class AbstractTest extends TestCase
      * @var     Config
      */
     static protected $config;
+
+    /**
+     * Return the loader class for this test suite
+     *
+     * @abstract
+     * @access  protected
+     * @param   void
+     * @return  LoaderInterface
+     */
+    abstract protected function getLoader();
 
     /**
      * Return a valid config file path
@@ -85,42 +95,40 @@ abstract class AbstractTest extends TestCase
     abstract protected function getNestedTypes();
 
     /**
-     * Load an invalid config type
+     * Load a config file from an invalid path
      *
      * @access  public
      * @param   void
      */
-    public function testLoadOfInvalidType()
+    public function testLoadOfInvalidFilePath()
     {
         $error = false;
+        $loader = $this->getLoader();
 
         try {
-            new Config(self::CONFIG_DIR . '/test_invalid_type.xyz');
-        } catch (InvalidTypeException $e) {
-            $error = true;
+            $loader->load($this->getInvalidConfigPath());
         } catch (InvalidFileException $e) {
-            $this->fail('Received an invalid file exception instead of invalid type');
+            $error = true;
         }
 
         $this->assertTrue($error);
     }
 
     /**
-     * Load an invalid config file
+     * Load a config file of an invalid type
      *
      * @access  public
      * @param   void
      */
-    public function testLoadOfInvalidFile()
+    public function testLoadOfInvalidFileType()
     {
         $error = false;
+        $loader = $this->getLoader();
 
         try {
-            new Config($this->getInvalidConfigPath());
+            $loader->load(self::CONFIG_DIR . '/test_invalid_type.xyz');
         } catch (InvalidFileException $e) {
             $error = true;
-        } catch (InvalidTypeException $e) {
-            $this->fail('Received an invalid type exception instead of invalid file');
         }
 
         $this->assertTrue($error);
@@ -134,11 +142,13 @@ abstract class AbstractTest extends TestCase
      */
     public function testLoadValidFile()
     {
+        $loader = $this->getLoader();
+
         try {
-            self::$config = new Config($this->getValidConfigPath());
+            self::$config = new Config(
+                $loader->load($this->getValidConfigPath())
+            );
         } catch (InvalidFileException $e) {
-            $this->fail($e->getMessage());
-        } catch (InvalidTypeException $e) {
             $this->fail($e->getMessage());
         }
 
@@ -152,14 +162,14 @@ abstract class AbstractTest extends TestCase
      * @access  public
      * @param   void
      */
-    public function testMagicGet()
+    public function testMagicGetTopLevel()
     {
         foreach ($this->getTopLevelScalars() as $key => $value) {
             $this->assertEquals($value, self::$config->$key);
         }
 
         foreach ($this->getTopLevelTypes() as $key => $value) {
-            switch($value) {
+            switch ($value) {
                 case self::TYPE_STRING:
                     $this->assertTrue(is_string(self::$config->$key));
                     break;
@@ -183,7 +193,16 @@ abstract class AbstractTest extends TestCase
                     ));
             }
         }
+    }
 
+    /**
+     * Test the nested values of the magic __get function
+     *
+     * @access  public
+     * @param   void
+     */
+    function testMagicGetNested()
+    {
         foreach ($this->getNestedScalars() as $key => $value) {
             $pointer = clone(self::$config);
 
@@ -230,6 +249,56 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
+     * Test the get() method
+     *
+     * @access  public
+     * @param   void
+     */
+    public function testGet()
+    {
+        $keys = array_merge(
+            $this->getTopLevelScalars(),
+            $this->getNestedScalars()
+        );
+
+        $types = array_merge(
+            $this->getTopLevelTypes(),
+            $this->getNestedTypes()
+        );
+
+        foreach ($keys as $key => $expectedValue) {
+            $actualValue = self::$config->get($key);
+            $this->assertEquals($expectedValue, $actualValue);
+
+            if (array_key_exists($key, $types)) {
+                switch($types[$key]) {
+                    case self::TYPE_STRING:
+                        $this->assertTrue(is_string($actualValue));
+                        break;
+                    case self::TYPE_INT:
+                        $this->assertTrue(is_int($actualValue));
+                        break;
+                    case self::TYPE_FLOAT:
+                        $this->assertTrue(is_float($actualValue));
+                        break;
+                    case self::TYPE_BOOL:
+                        $this->assertTrue(is_bool($actualValue));
+                        break;
+                    case self::TYPE_CONFIG:
+                        $this->assertTrue(is_object($actualValue));
+                        $this->assertEquals(Config::class, get_class($actualValue));
+                        break;
+                    default:
+                        $this->fail(sprintf(
+                            'Undefined type: %s',
+                            $types[$key]
+                        ));
+                }
+            }
+        }
+    }
+
+    /**
      * Test the magic __set function
      *
      * @access  public
@@ -259,5 +328,19 @@ abstract class AbstractTest extends TestCase
         self::$config->{'foo'}->{'bar'} = false;
 
         $this->assertFalse(self::$config->{'foo'}->{'bar'});
+    }
+
+    /**
+     * Test magic __unset function
+     *
+     * @access  public
+     * @param   void
+     */
+    public function testMagicUnset()
+    {
+        unset(self::$config->{'foo'});
+
+        $this->assertFalse(self::$config->{'foo'});
+        $this->assertFalse(self::$config->get('foo.bar'));
     }
 }

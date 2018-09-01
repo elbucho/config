@@ -1,9 +1,23 @@
 <?php
 
 namespace Elbucho\Config\Tests;
+use Elbucho\Config\Driver\YamlFileLoader;
+use Elbucho\Config\LoaderInterface;
 
 class YamlTest extends AbstractTest
 {
+    /**
+     * Return the loader class for this test suite
+     *
+     * @access  protected
+     * @param   void
+     * @return  LoaderInterface
+     */
+    protected function getLoader()
+    {
+        return new YamlFileLoader();
+    }
+
     /**
      * Return a valid config file path
      *

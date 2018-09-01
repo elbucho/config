@@ -1,9 +1,23 @@
 <?php
 
 namespace Elbucho\Config\Tests;
+use Elbucho\Config\LoaderInterface;
+use Elbucho\Config\Driver\JsonFileLoader;
 
 class JsonTest extends AbstractTest
 {
+    /**
+     * Return the loader class for this test suite
+     *
+     * @access  protected
+     * @param   void
+     * @return  LoaderInterface
+     */
+    protected function getLoader()
+    {
+        return new JsonFileLoader();
+    }
+
     /**
      * Return a valid config file path
      *

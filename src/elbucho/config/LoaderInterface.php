@@ -10,6 +10,7 @@ interface LoaderInterface
      * @access  public
      * @param   mixed   $input
      * @return  bool
+     * @throws  InvalidFileException
      */
     public function isValid($input);
 

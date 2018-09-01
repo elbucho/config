@@ -145,8 +145,6 @@ final class GlobLoader extends AbstractLoader
             } else {
                 continue;
             }
-
-
         }
     }
 }

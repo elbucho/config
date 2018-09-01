@@ -1,9 +1,23 @@
 <?php
 
 namespace Elbucho\Config\Tests;
+use Elbucho\Config\LoaderInterface;
+use Elbucho\Config\Driver\XmlFileLoader;
 
 class XmlTest extends AbstractTest
 {
+    /**
+     * Return the loader class for this test suite
+     *
+     * @access  protected
+     * @param   void
+     * @return  LoaderInterface
+     */
+    protected function getLoader()
+    {
+        return new XmlFileLoader();
+    }
+
     /**
      * Return a valid config file path
      *

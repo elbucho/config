@@ -1,9 +1,23 @@
 <?php
 
 namespace Elbucho\Config\Tests;
+use Elbucho\Config\Loader\File\IniFileLoader;
+use Elbucho\Config\LoaderInterface;
 
 class IniTest extends AbstractTest
 {
+    /**
+     * Return the loader class for this test suite
+     *
+     * @access  protected
+     * @param   void
+     * @return  LoaderInterface
+     */
+    protected function getLoader()
+    {
+        return new IniFileLoader();
+    }
+
     /**
      * Return a valid config file path
      *
