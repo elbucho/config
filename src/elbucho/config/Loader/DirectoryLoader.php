@@ -88,17 +88,10 @@ final class DirectoryLoader extends AbstractLoader
      * @access  private
      * @param   string  $directory
      * @return  array
-     * @throws  InvalidFileException
      */
     private function getFiles($directory)
     {
-        if (($dh = @opendir($directory)) === false) {
-            throw new InvalidFileException(sprintf(
-                'Unable to open the directory %s',
-                $directory
-            ));
-        }
-
+        $dh = opendir($directory);
         $files = array();
 
         while (($file = readdir($dh)) !== false) {

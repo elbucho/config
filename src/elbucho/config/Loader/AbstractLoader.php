@@ -95,7 +95,7 @@ abstract class AbstractLoader implements LoaderInterface
                 'is_directory'  => is_dir($path),
                 'key_name'      => $info['filename'],
                 'full_path'     => $path,
-                'extension'     => $info['extension']
+                'extension'     => (array_key_exists('extension', $info) ? $info['extension'] : '')
             );
         }
 

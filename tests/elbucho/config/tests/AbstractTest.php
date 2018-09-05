@@ -25,6 +25,15 @@ abstract class AbstractTest extends TestCase
     static protected $config;
 
     /**
+     * Appended array keys
+     *
+     * @static
+     * @access  protected
+     * @var     array
+     */
+    static protected $appendKeys = array();
+
+    /**
      * Return the loader class for this test suite
      *
      * @abstract
@@ -342,5 +351,179 @@ abstract class AbstractTest extends TestCase
 
         $this->assertFalse(self::$config->{'foo'});
         $this->assertFalse(self::$config->get('foo.bar'));
+    }
+
+    /**
+     * Test the append function
+     *
+     * @access  public
+     * @param   void
+     */
+    public function testAppend()
+    {
+        for($i=0;$i<4;$i++) {
+            self::$appendKeys[] = md5(rand());
+        }
+
+        $appendArray = array(
+            self::$appendKeys[0] => 'foo',
+            self::$appendKeys[1] => array(
+                self::$appendKeys[2] => 'bar'
+            )
+        );
+
+        $appendConfig = new Config($appendArray);
+
+        $this->assertTrue(
+            $this->arraysAreEqual($appendArray, $appendConfig->toArray())
+        );
+
+        self::$config->append($appendConfig);
+
+        $this->assertEquals(
+            'foo',
+            self::$config->{self::$appendKeys[0]}
+        );
+
+        $this->assertEquals(
+            'bar',
+            self::$config->{self::$appendKeys[1]}->{self::$appendKeys[2]}
+        );
+
+        $appendConfig->{self::$appendKeys[1]}->{self::$appendKeys[3]} = 'foobar';
+
+        self::$config->append($appendConfig);
+
+        $this->assertEquals(
+            'foobar',
+            self::$config->{self::$appendKeys[1]}->{self::$appendKeys[3]}
+        );
+    }
+
+    /**
+     * Test the remove function
+     *
+     * @access  public
+     * @param   void
+     */
+    public function testRemove()
+    {
+        // Remove top-level appended key
+        $this->assertTrue(isset(self::$config->{self::$appendKeys[0]}));
+
+        self::$config->remove(self::$appendKeys[0]);
+
+        $this->assertFalse(self::$config->get(self::$appendKeys[0]));
+
+        // Remove nested key
+        $this->assertEquals(
+            2,
+            self::$config->{self::$appendKeys[1]}->count()
+        );
+
+        $this->assertEquals(
+            'bar',
+            self::$config->get(
+                sprintf(
+                    '%s.%s',
+                    self::$appendKeys[1],
+                    self::$appendKeys[2]
+                )
+            )
+        );
+
+        self::$config->remove(sprintf(
+            '%s.%s',
+            self::$appendKeys[1],
+            self::$appendKeys[2]
+        ));
+
+        $this->assertFalse(
+            self::$config->get(
+                sprintf(
+                    '%s.%s',
+                    self::$appendKeys[1],
+                    self::$appendKeys[2]
+                )
+            )
+        );
+
+        $this->assertEquals(
+            1,
+            self::$config->{self::$appendKeys[1]}->count()
+        );
+
+        // Remove a nested value that doesn't exist
+        self::$config->remove(sprintf(
+            '%s.%s.asdf',
+            self::$appendKeys[1],
+            self::$appendKeys[2]
+        ));
+
+        $this->assertFalse(
+            self::$config->get(
+                sprintf(
+                    '%s.%s',
+                    self::$appendKeys[1],
+                    self::$appendKeys[2]
+                )
+            )
+        );
+    }
+
+    /**
+     * Test serialize / unserialize functions
+     *
+     * @access  public
+     * @param   void
+     */
+    public function testSerializeUnserialize()
+    {
+        $serialized = self::$config->serialize();
+        $unserialized = new Config(array());
+        $unserialized->unserialize($serialized);
+
+        $this->assertInstanceOf(Config::class, $unserialized);
+        $this->assertTrue(
+            $this->arraysAreEqual(
+                $unserialized->toArray(),
+                self::$config->toArray()
+            )
+        );
+    }
+
+    /**
+     * Determine if both provided arrays are equal
+     *
+     * @access  private
+     * @param   array   $array1
+     * @param   array   $array2
+     * @return  bool
+     */
+    private function arraysAreEqual(array $array1, array $array2)
+    {
+        if (count($array1) !== count($array2)) {
+            return false;
+        }
+
+        foreach ($array1 as $key => $value) {
+            if ( ! array_key_exists($key, $array2)) {
+                return false;
+            }
+
+            if (is_array($value)) {
+                if ( ! is_array($array2[$key])) {
+                    return false;
+                }
+
+                $result = $this->arraysAreEqual($value, $array2[$key]);
+
+                if ($result === false) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

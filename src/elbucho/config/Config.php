@@ -16,10 +16,10 @@ class Config implements \Serializable, \Iterator
      * Class constructor
      *
      * @access  public
-     * @param   array   $data
+     * @param   iterable    $data
      * @return  Config
      */
-    public function __construct(array $data = array())
+    public function __construct(iterable $data)
     {
         $this->data = $this->load($data);
 
@@ -30,10 +30,10 @@ class Config implements \Serializable, \Iterator
      * Append additional files / array to Config object
      *
      * @access  public
-     * @param   array   $data
+     * @param   iterable    $data
      * @return  Config
      */
-    public function append(array $data = array())
+    public function append(iterable $data)
     {
         $newData = $this->load($data);
 
@@ -204,7 +204,6 @@ class Config implements \Serializable, \Iterator
      * The string representation of the object.
      * </p>
      * @return void
-     * @throws  \Exception
      */
     public function unserialize($serialized)
     {
@@ -273,10 +272,10 @@ class Config implements \Serializable, \Iterator
      * Load config from an array
      *
      * @access  private
-     * @param   array   $data
+     * @param   iterable    $data
      * @return  Config[]
      */
-    private function load(array $data = array())
+    private function load(iterable $data)
     {
         $return = array();
 
