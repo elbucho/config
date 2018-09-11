@@ -110,6 +110,36 @@ class Config implements \Serializable, \Iterator
     }
 
     /**
+     * Set a value; if the path doesn't exist, create it
+     *
+     * @access  public
+     * @param   string  $path
+     * @param   mixed   $value
+     * @return  Config
+     */
+    public function set($path, $value)
+    {
+        $pointer = $this;
+        $parts = explode('.', $path);
+
+        foreach ($parts as $index => $part) {
+            if (count($parts) - 1 == $index) {
+                $pointer->$part = $value;
+
+                break;
+            }
+
+            if ( ! $pointer->exists($part) or ! $pointer->$part instanceof Config) {
+                $pointer->$part = new Config(array());
+            }
+
+            $pointer = $pointer->$part;
+        }
+
+        return $this;
+    }
+
+    /**
      * Remove a key / tree of keys
      *
      * @access  public
@@ -130,6 +160,28 @@ class Config implements \Serializable, \Iterator
         }
 
         unset($pointer->{$parts[count($parts)-1]});
+    }
+
+    /**
+     * Determine if a path exists
+     *
+     * @access  public
+     * @param   string  $path
+     * @return  bool
+     */
+    public function exists($path)
+    {
+        $pointer = $this;
+
+        foreach (explode('.', $path) as $part) {
+            if ( ! isset($pointer->$part)) {
+                return false;
+            }
+
+            $pointer = $pointer->$part;
+        }
+
+        return true;
     }
 
     /**

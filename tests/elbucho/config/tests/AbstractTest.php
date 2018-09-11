@@ -354,6 +354,32 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
+     * Test the set() method
+     *
+     * @access  public
+     * @param   void
+     */
+    public function testSet()
+    {
+        self::$config->set('foo', 'bar1');
+
+        $this->assertTrue(isset(self::$config->{'foo'}));
+        $this->assertEquals('bar1', self::$config->{'foo'});
+
+        self::$config->set('foo.bar.foobar', 'asdf');
+
+        $this->assertTrue(self::$config->exists('foo.bar.foobar'));
+        $this->assertEquals('asdf', self::$config->get('foo.bar.foobar'));
+
+        self::$config->set('foo.bar', false);
+
+        $this->assertFalse(self::$config->exists('foo.bar.foobar'));
+        $this->assertEquals(false, self::$config->get('foo.bar'));
+
+        unset(self::$config->{'foo'});
+    }
+
+    /**
      * Test the append function
      *
      * @access  public
