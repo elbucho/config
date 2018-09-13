@@ -1,13 +1,12 @@
 <?php
 
-namespace Elbucho\Config\Driver;
+namespace Elbucho\Config\Loader\File;
 use Elbucho\Config\InvalidFileException;
-use Elbucho\Config\Loader\File\AbstractFileLoader;
 
-class JsonFileLoader extends AbstractFileLoader
+class PhpFileLoader extends AbstractFileLoader
 {
     /**
-     * Parsed .json file
+     * Parsed .php file
      *
      * @access  private
      * @var     array
@@ -36,28 +35,18 @@ class JsonFileLoader extends AbstractFileLoader
             return false;
         }
 
-        $payload = file_get_contents($input);
+        ob_start();
 
-        if ($payload === false) {
-            return false;
-        }
+        /** @noinspection PhpIncludeInspection */
+        $this->parsedData = @require($input);
 
-        $parsed = json_decode(
-            trim($payload),
-            true
-        );
+        $output = ob_get_clean();
 
-        if (is_null($parsed)) {
+        if ( ! is_array($this->parsedData) or ! empty($output)) {
             throw new InvalidFileException(sprintf(
-                'The provided .json file is in an invalid format: %s',
-                print_r($input, true)
+                'The provided .php file is in an invalid format: %s',
+                sprintf($input, true)
             ));
-        }
-
-        if ( ! is_array($parsed)) {
-            $this->parsedData = array($parsed);
-        } else {
-            $this->parsedData = $parsed;
         }
 
         return true;
@@ -75,7 +64,7 @@ class JsonFileLoader extends AbstractFileLoader
     {
         if ( ! $this->isValid($input)) {
             throw new InvalidFileException(sprintf(
-                'Provided .json file is not found, or is not readable: %s',
+                'Provided .php file is not found, or is not readable: %s',
                 print_r($input, true)
             ));
         }

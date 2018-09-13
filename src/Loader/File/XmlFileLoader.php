@@ -1,8 +1,7 @@
 <?php
 
-namespace Elbucho\Config\Driver;
+namespace Elbucho\Config\Loader\File;
 use Elbucho\Config\InvalidFileException;
-use Elbucho\Config\Loader\File\AbstractFileLoader;
 
 class XmlFileLoader extends AbstractFileLoader
 {
