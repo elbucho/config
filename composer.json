@@ -26,11 +26,11 @@
   },
   "autoload": {
     "psr-4": {
-      "Elbucho\\Config\\": "src/elbucho/config/"
+      "Elbucho\\Config\\": "src/"
     }
   },
   "autoload-dev": {
-    "Elbucho\\Config\\Tests\\": "tests/elbucho/config/tests/"
+    "Elbucho\\Config\\Tests\\": "tests/"
   },
   "extra": {
     "branch-alias": {

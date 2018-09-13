@@ -8,7 +8,7 @@ use Elbucho\Config\Config;
 
 abstract class AbstractTest extends TestCase
 {
-    const CONFIG_DIR = __DIR__ . '/../docs';
+    const CONFIG_DIR = __DIR__ . '/docs';
     const TYPE_STRING = 'string';
     const TYPE_INT = 'int';
     const TYPE_FLOAT = 'float';

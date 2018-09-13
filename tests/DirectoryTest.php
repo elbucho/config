@@ -23,13 +23,13 @@ class DirectoryTest extends TestCase
                 1, true
             ),
             array(
-                dirname(__DIR__) . '/invalid_directory', true
+                __DIR__ . '/invalid_directory', true
             ),
             array(
                 '/dev/null', true
             ),
             array(
-                dirname(__DIR__) . '/docs', false
+                __DIR__ . '/docs', false
             )
         );
     }
@@ -64,7 +64,7 @@ class DirectoryTest extends TestCase
      */
     public function testDirectoryLoad()
     {
-        $configDir = dirname(__DIR__) . '/docs';
+        $configDir = __DIR__ . '/docs';
         $loader = new DirectoryLoader();
 
         try {
@@ -92,7 +92,7 @@ class DirectoryTest extends TestCase
      */
     public function testNestedDirectoryLoad()
     {
-        $configDir = dirname(__DIR__) . '/docs';
+        $configDir = __DIR__ . '/docs';
         $newDir = $configDir . '/footest';
         $loader = new DirectoryLoader();
         $exception = null;
@@ -137,7 +137,7 @@ class DirectoryTest extends TestCase
     public function testRegisterLoader()
     {
         $exception = null;
-        $configDir = dirname(__DIR__) . '/docs';
+        $configDir = __DIR__ . '/docs';
         $loader = new DirectoryLoader();
         $loader->registerLoader(
             new IniFileLoader(),

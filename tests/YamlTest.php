@@ -1,10 +1,10 @@
 <?php
 
 namespace Elbucho\Config\Tests;
+use Elbucho\Config\Loader\File\YamlFileLoader;
 use Elbucho\Config\LoaderInterface;
-use Elbucho\Config\Driver\XmlFileLoader;
 
-class XmlTest extends AbstractTest
+class YamlTest extends AbstractTest
 {
     /**
      * Return the loader class for this test suite
@@ -15,7 +15,7 @@ class XmlTest extends AbstractTest
      */
     protected function getLoader()
     {
-        return new XmlFileLoader();
+        return new YamlFileLoader();
     }
 
     /**
@@ -27,7 +27,7 @@ class XmlTest extends AbstractTest
      */
     protected function getValidConfigPath()
     {
-        return self::CONFIG_DIR . '/xml_test.xml';
+        return self::CONFIG_DIR . '/yaml_test.yml';
     }
 
     /**
@@ -39,7 +39,7 @@ class XmlTest extends AbstractTest
      */
     protected function getInvalidConfigPath()
     {
-        return self::CONFIG_DIR . '/xml_test_invalid.xml';
+        return self::CONFIG_DIR . '/yaml_test_invalid.yaml';
     }
 
     /**

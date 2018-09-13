@@ -2,7 +2,7 @@
 
 namespace Elbucho\Config\Tests;
 use Elbucho\Config\LoaderInterface;
-use Elbucho\Config\Driver\JsonFileLoader;
+use Elbucho\Config\Loader\File\JsonFileLoader;
 
 class JsonTest extends AbstractTest
 {
