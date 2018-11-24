@@ -66,17 +66,26 @@ final class DirectoryLoader extends AbstractLoader
         $return = array();
 
         foreach ($this->getFiles($directory) as $file) {
+            $data = array();
+
             if ($file['is_directory']) {
-                $return[$file['key_name']] = $this->loadDirectory($file['full_path']);
+                $data = $this->loadDirectory($file['full_path']);
+            } elseif (array_key_exists($file['extension'], $this->loaders)) {
+                $data = $this->loaders[$file['extension']]->load($file['full_path']);
+            }
 
+            if (empty($data)) {
                 continue;
             }
 
-            if ( ! array_key_exists($file['extension'], $this->loaders)) {
-                continue;
+            if ( ! array_key_exists($file['key_name'], $return)) {
+                $return[$file['key_name']] = array();
             }
 
-            $return[$file['key_name']] = $this->loaders[$file['extension']]->load($file['full_path']);
+            $return[$file['key_name']] = $this->merge(
+                $return[$file['key_name']],
+                $data
+            );
         }
 
         return $return;
@@ -103,5 +112,30 @@ final class DirectoryLoader extends AbstractLoader
         }
 
         return $this->getFileInfo($files);
+    }
+
+    /**
+     * Do a deep array merge
+     *
+     * @access  private
+     * @param   array   $existing
+     * @param   array   $new
+     * @return  array
+     */
+    private function merge(array $existing, array $new): array
+    {
+        $return = $existing;
+
+        foreach ($new as $key => $value) {
+            if ( ! array_key_exists($key, $existing)) {
+                $return[$key] = $value;
+            } elseif ( ! is_array($value) or ! is_array($existing[$key])) {
+                $return[$key] = $value;
+            } else {
+                $return[$key] = $this->merge($existing[$key], $value);
+            }
+        }
+
+        return $return;
     }
 }
